@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit 5 英语重难点复习应用</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .flashcard {
+            min-height: 240px; 
+            cursor: pointer;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+        .flashcard-inner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .flashcard-front {
+            background-color: #4f46e5;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .flashcard-back {
+            background-color: white;
+            color: #1f2937;
+            font-size: 1.5rem;
+            font-weight: 600;
+            transform: rotateY(180deg);
+            border: 2px solid #4f46e5;
+        }
+        .tab-active {
+            border-bottom: 3px solid #4f46e5;
+            color: #4f46e5;
+            font-weight: 600;
+        }
+        /* Style for the custom input display (Applies to Grammar & Completion) */
+        #grammar-quiz-display, #completion-quiz-display {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            line-height: 2.5rem; 
+        }
+        /* Reduced input width and margin for tighter spacing in Completion Quiz */
+        #grammar-quiz-display input, #completion-quiz-display input {
+            display: inline-block;
+            width: 100px; 
+            margin: 0 3px; 
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 2px 5px;
+            background-color: #fffbeb; 
+        }
+        .blank {
+            color: #f97316; /* Orange color for blanks */
+        }
+        
+        /* Cloze Test Styles */
+        .cloze-passage-text {
+            font-size: 1.125rem; 
+            line-height: 2.5rem; 
+            text-align: justify;
+            margin-top: 1rem;
+        }
+        
+        /* Cloze Blank Container: Redefining to center the underline */
+        .cloze-placeholder {
+            display: inline-flex; 
+            flex-direction: column;
+            align-items: center;
+            margin: 0 2px; 
+            min-width: 60px; 
+            box-sizing: content-box; 
+            height: 2.5rem; 
+            justify-content: center; 
+            vertical-align: middle; 
+            padding-top: 0; 
+        }
+        .cloze-number {
+            font-weight: 700;
+            color: #ef4444; 
+            font-size: 0.8rem; 
+            line-height: 1; 
+            margin-bottom: 0.5rem; 
+        }
+        .cloze-underline {
+            display: block;
+            width: 100%;
+            height: 1px;
+            border-bottom: 2px dashed #374151; 
+            margin-bottom: 0; 
+        }
+
+        /* Styles for making Cloze options strictly 4 per line, non-wrapping */
+        .cloze-options-row {
+            display: flex;
+            justify-content: space-between; 
+            flex-wrap: nowrap; 
+            gap: 0.75rem; 
+            margin-top: 0.5rem;
+            overflow-x: auto; 
+            padding-bottom: 0.25rem; 
+        }
+        /* Style for each individual option label */
+        .cloze-options-row label {
+            flex: 1; 
+            white-space: nowrap; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            
+            /* Visual improvements */
+            display: flex;
+            align-items: center;
+            justify-content: center; 
+            text-align: center;
+            font-weight: 500;
+            min-height: 1.5rem; 
+            padding: 0.25rem 0.25rem; 
+            border: 1px solid #d1d5db; 
+            border-radius: 0.5rem; 
+            background-color: #ffffff;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+        }
+        
+        .cloze-options-row label:hover {
+            border-color: #ef4444; 
+            background-color: #fef2f2; 
+        }
+        
+        /* Hide radio button bullet for cleaner appearance, relying on label click */
+        .cloze-options-row label input[type="radio"] {
+            display: none; 
+        }
+
+        /* Highlight the selected option */
+        .cloze-options-row label input[type="radio"]:checked + span {
+            color: #ef4444; 
+            font-weight: 700;
+        }
+        
+        /* Custom Switch CSS */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #4f46e5;
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Phonics Breakdown style */
+        .phonics-breakdown {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #d1d5db; /* Light gray text */
+            margin-top: 0.5rem;
+        }
+        .phonics-breakdown span {
+            padding: 2px 4px;
+            margin: 0 1px;
+            border-radius: 4px;
+            background-color: #6366f1; /* Slightly lighter indigo background */
+            font-weight: 700;
+            color: white;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <!-- Header -->
+    <header class="text-center mb-8">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-800">Unit 5 英语重难点复习应用</h1>
+        <p class="text-gray-500 mt-1">How are the seasons different? (学习 & 测试全覆盖)</p>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="flex justify-center border-b border-gray-300 mb-8 sticky top-0 bg-white z-10 rounded-t-xl shadow-md overflow-x-auto">
+        <button id="tab-vocab" onclick="showSection('vocab')" class="p-3 sm:px-6 text-lg transition duration-200 tab-active whitespace-nowrap">词汇闪卡</button>
+        <button id="tab-sentences" onclick="showSection('sentences')" class="p-3 sm:px-6 text-lg transition duration-200 whitespace-nowrap">重点句子</button>
+        <button id="tab-grammar" onclick="showSection('grammar')" class="p-3 sm:px-6 text-lg transition duration-200 whitespace-nowrap">语法自测</button>
+        <button id="tab-reading" onclick="showSection('reading')" class="p-3 sm:px-6 text-lg transition duration-200 whitespace-nowrap">阅读理解</button>
+        <button id="tab-completion" onclick="showSection('completion')" class="p-3 sm:px-6 text-lg transition duration-200 whitespace-nowrap">完全填空</button>
+        <button id="tab-cloze" onclick="showSection('cloze')" class="p-3 sm:px-6 text-lg transition duration-200 whitespace-nowrap">完形填空</button>
+    </div>
+
+    <main class="max-w-4xl w-full mx-auto">
+        
+        <!-- I. 词汇闪卡 Section -->
+        <section id="section-vocab" class="review-section">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">I. 词汇闪卡 (点击卡片翻面)</h2>
+            
+            <!-- Toggle Control and Counter -->
+            <div class="flex justify-between items-center mb-4 p-4 bg-indigo-50 rounded-lg">
+                <div class="flex items-center space-x-3">
+                    <!-- Clarified interaction: it's a switch (开关) -->
+                    <span class="text-sm text-indigo-700">显示中文翻译 (开关):</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="chinese-toggle" onchange="toggleChinese()" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p class="text-sm text-indigo-700">当前进度: <span id="vocab-counter">1 / 34</span></p>
+            </div>
+
+            <div id="vocab-card-container" class="flashcard-container mb-6">
+                <!-- Flashcard will be inserted here -->
+            </div>
+            
+            <!-- Audio Status -->
+            <p id="audio-status" class="text-sm mt-3 text-center min-h-[1.5rem] text-gray-500">点击读音按钮播放</p>
+            
+            <div class="flex gap-3 mt-4">
+                <button onclick="prevVocab()" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-300">上一个词汇</button>
+                <button onclick="nextVocab()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-300">下一个词汇</button>
+            </div>
+        </section>
+
+        <!-- II. 重点句子 Section -->
+        <section id="section-sentences" class="review-section hidden">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">II. 重点句子回顾 (先说出英文，再点击显示)</h2>
+            <div class="flex justify-between items-center mb-4 p-4 bg-emerald-50 rounded-lg">
+                <p class="text-sm text-emerald-700">当前进度: <span id="sentence-counter">1 / 28</span></p>
+                <div class="flex gap-3">
+                    <button onclick="prevSentence()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 rounded-full shadow-md transition duration-300">上一句</button>
+                    <button onclick="nextSentence()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition duration-300">下一句</button>
+                </div>
+            </div>
+
+            <div class="p-6 bg-white rounded-xl shadow-lg border border-emerald-300">
+                <p id="sentence-cn" class="text-xl text-gray-800 mb-4 font-medium"></p>
+                <div id="sentence-en-container" class="border-t pt-4 mt-4 hidden">
+                    <p class="text-sm text-gray-500 mb-2">英文原句 (English Sentence):</p>
+                    <p id="sentence-en" class="text-2xl font-bold text-emerald-700"></p>
+                </div>
+                <button id="sentence-reveal-btn" onclick="revealSentence()" class="mt-4 w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">点击显示英文原句</button>
+            </div>
+        </section>
+
+        <!-- III. 语法自测 Section -->
+        <section id="section-grammar" class="review-section hidden">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">III. 语法自测：动词三单 & help sb. do sth.</h2>
+
+            <div class="p-6 bg-yellow-50 rounded-xl shadow-lg border border-yellow-300 mb-6">
+                <p class="text-lg text-yellow-800 mb-3 font-semibold">当前语法点: <span id="grammar-rule"></span></p>
+                <p id="grammar-cn" class="text-md text-gray-600"></p>
+            </div>
+
+            <div class="p-6 bg-white rounded-xl shadow-lg border border-gray-200">
+                <p class="text-xl text-gray-800 mb-4 font-medium">请填写正确的单词完成句子:</p>
+                <div id="grammar-quiz-display">
+                    <!-- Quiz sentence components will be rendered here -->
+                </div>
+                
+                <p id="quiz-result" class="text-lg font-medium min-h-[30px] mt-4"></p>
+                <div class="flex space-x-4 mt-4">
+                    <button onclick="prevGrammar()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-4 rounded-lg transition duration-300">上一题</button>
+                    <button id="check-btn" onclick="checkGrammar()" class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">提交答案</button>
+                    <button onclick="nextGrammar()" class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">跳过/下一题</button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- IV. 阅读理解 Section -->
+        <section id="section-reading" class="review-section hidden">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">IV. 阅读理解 (Reading Comprehension)</h2>
+
+            <div class="p-6 bg-purple-50 rounded-xl shadow-lg border border-purple-300 mb-6">
+                <p id="reading-title" class="text-xl text-purple-800 mb-3 font-bold"></p>
+                <p id="reading-passage" class="text-lg text-gray-700 leading-relaxed"></p>
+            </div>
+
+            <div id="reading-questions-container" class="space-y-6">
+                <!-- Questions injected here -->
+            </div>
+
+            <div class="flex space-x-4 mt-8">
+                <button onclick="prevReading()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-4 rounded-lg transition duration-300">上一篇阅读</button>
+                <button id="reading-check-btn" onclick="checkReading()" class="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">提交阅读答案</button>
+                <button onclick="nextReading()" class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">下一篇阅读</button>
+            </div>
+            <p id="reading-result" class="text-lg font-medium min-h-[30px] mt-4 text-center"></p>
+        </section>
+
+        <!-- V. 完全填空 Section -->
+        <section id="section-completion" class="review-section hidden">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">V. 完全填空 (Sentence Completion)</h2>
+
+            <div class="p-6 bg-pink-50 rounded-xl shadow-lg border border-pink-300 mb-6">
+                <p id="completion-cn" class="text-md text-gray-600 font-semibold"></p>
+            </div>
+
+            <div class="p-6 bg-white rounded-xl shadow-lg border border-gray-200">
+                <p class="text-xl text-gray-800 mb-4 font-medium">根据中文提示，填写正确的单词完成句子:</p>
+                <div id="completion-quiz-display">
+                    <!-- Quiz sentence components will be rendered here -->
+                </div>
+                
+                <p id="completion-result" class="text-lg font-medium min-h-[30px] mt-4"></p>
+                <div class="flex space-x-4 mt-4">
+                    <button onclick="prevCompletion()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-4 rounded-lg transition duration-300">上一题</button>
+                    <button id="completion-check-btn" onclick="checkCompletion()" class="flex-1 bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">提交答案</button>
+                    <button onclick="nextCompletion()" class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">下一题</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VI. 完形填空 Section (NEW) -->
+        <section id="section-cloze" class="review-section hidden">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">VI. 完形填空 (Cloze Test)</h2>
+
+            <div class="p-6 bg-red-50 rounded-xl shadow-lg border border-red-300 mb-6">
+                <p id="cloze-title" class="text-xl text-red-800 mb-3 font-bold"></p>
+                <div id="cloze-passage" class="cloze-passage-text text-gray-700 mb-4">
+                    <!-- Passage with blanks will be rendered here -->
+                </div>
+                <p class="text-sm text-gray-600">请根据上下文，选择下方最合适的选项填入空白处。</p>
+            </div>
+
+            <div id="cloze-questions-container" class="space-y-6">
+                <!-- Questions injected here -->
+            </div>
+
+            <div class="flex space-x-4 mt-8">
+                <button onclick="prevCloze()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-4 rounded-lg transition duration-300">上一篇</button>
+                <button id="cloze-check-btn" onclick="checkCloze()" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">提交完形填空答案</button>
+                <button onclick="nextCloze()" class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">下一篇</button>
+            </div>
+            <p id="cloze-result" class="text-lg font-medium min-h-[30px] mt-4 text-center"></p>
+        </section>
+
+    </main>
+
+    <script>
+        // --- 1. Data Definitions ---
+        // Added 'phonics' array for natural phonics breakdown
+        const vocabularyData = [
+            // Core Vocabulary - Added Phonics
+            {en: "spring", phonetic: "sprɪŋ", cn: "春天", phonics: ["s", "pr", "ing"]}, 
+            {en: "warm", phonetic: "wɔːrm", cn: "温暖的", phonics: ["w", "arm"]}, 
+            {en: "summer", phonetic: "sʌmər", cn: "夏天", phonics: ["su", "m", "mer"]},
+            {en: "hot", phonetic: "hɑːt", cn: "炎热的", phonics: ["h", "ot"]}, 
+            {en: "autumn", phonetic: "ɔːtəm", cn: "秋天", phonics: ["au", "t", "umn"]}, 
+            {en: "cool", phonetic: "kuːl", cn: "凉爽的", phonics: ["c", "oo", "l"]},
+            {en: "winter", phonetic: "wɪntər", cn: "冬天", phonics: ["w", "in", "ter"]}, 
+            {en: "cold", phonetic: "koʊld", cn: "寒冷的", phonics: ["c", "old"]}, 
+            {en: "parent", phonetic: "perənt", cn: "父亲或母亲", phonics: ["pa", "rent"]},
+            {en: "season", phonetic: "siːzən", cn: "季节", phonics: ["sea", "son"]}, 
+            {en: "year", phonetic: "jɪər", cn: "年", phonics: ["y", "ear"]}, 
+            {en: "grow", phonetic: "ɡroʊ", cn: "(使)生长", phonics: ["gr", "ow"]},
+            {en: "get", phonetic: "ɡet", cn: "变得", phonics: ["g", "et"]}, 
+            {en: "usually", phonetic: "juːʒuəli", cn: "通常", phonics: ["u", "su", "all", "y"]}, 
+            {en: "after", phonetic: "æftər", cn: "在...之后", phonics: ["af", "ter"]},
+            {en: "fall", phonetic: "fɔːl", cn: "落下", phonics: ["f", "all"]}, 
+            {en: "turn", phonetic: "tɜːrn", cn: "(使)变成", phonics: ["t", "urn"]}, 
+            {en: "often", phonetic: "ɔːfən", cn: "经常", phonics: ["of", "ten"]},
+            {en: "snow", phonetic: "snoʊ", cn: "下雪", phonics: ["sn", "ow"]}, 
+            {en: "then", phonetic: "ðen", cn: "然后", phonics: ["th", "en"]}, 
+            {en: "begin", phonetic: "bɪɡɪn", cn: "开始", phonics: ["be", "gin"]},
+            // Supplementary Vocabulary
+            {en: "different", phonetic: "dɪfrənt", cn: "不同的", phonics: ["di", "ff", "er", "ent"]}, 
+            {en: "caption", phonetic: "kæpʃən", cn: "文字说明", phonics: ["cap", "tion"]}, 
+            {en: "kid", phonetic: "kɪd", cn: "孩子", phonics: ["k", "id"]},
+            {en: "take a trip", phonetic: "teɪk ə trɪp", cn: "短途旅行", phonics: ["t", "ake", "a", "tr", "ip"]}, 
+            {en: "leaf (leaves)", phonetic: "liːf", cn: "树叶", phonics: ["l", "eaf"]}, 
+            {en: "change", phonetic: "tʃeɪndʒ", cn: "改变", phonics: ["ch", "ange"]},
+            {en: "each", phonetic: "iːtʃ", cn: "每个", phonics: ["ea", "ch"]}, 
+            {en: "favourite", phonetic: "feɪvərɪt", cn: "最喜欢的", phonics: ["fa", "vo", "ur", "ite"]}, 
+            {en: "wait", phonetic: "weɪt", cn: "等待", phonics: ["w", "ait"]},
+            {en: "until", phonetic: "ʌntɪl", cn: "直到", phonics: ["un", "til"]}, 
+            {en: "outside", phonetic: "aʊtsaɪd", cn: "在外面", phonics: ["out", "side"]}, 
+            {en: "weather", phonetic: "weðər", cn: "天气", phonics: ["wea", "ther"]},
+            {en: "activity", phonetic: "æktɪvəti", cn: "活动", phonics: ["ac", "tiv", "i", "ty"]}, 
+            {en: "build", phonetic: "bɪld", cn: "建造", phonics: ["b", "ui", "ld"]},
+        ];
+
+        const sentenceData = [
+            {en: "There are four seasons in a year: spring, summer, autumn and winter.", cn: "一年有四季:春夏秋冬。"},
+            {en: "Plants grow in spring.", cn: "植物在春天生长。"},
+            {en: "Spring is a season for growing. It gets warm. It usually rains a lot.", cn: "春天是生长的季节。天变暖了。天气通常下很多雨。"},
+            {en: "The rain helps plants grow.", cn: "雨水帮助植物生长。"},
+            {en: "Summer comes after spring. It gets hot. The days are long and nights are short.", cn: "夏天在春天之后到来。天变热了。夏天白天很长晚上很短。"},
+            {en: "The sun helps fruit and flowers grow.", cn: "太阳帮助果实和花朵生长。"},
+            {en: "Autumn comes after summer. It gets cool. Leaves fall down.", cn: "秋天在夏天之后到来。天变凉快了。树叶凋落。"},
+            {en: "Leaves turn red, yellow and orange.", cn: "树叶变红、变黄或变橙色。"},
+            {en: "Winter comes after autumn. It gets cold and it often snows!", cn: "冬天在秋天之后到来。天变冷并且经常下雪!"},
+            {en: "The days are short and the nights are long.", cn: "冬天白天很短晚上很长。"},
+            {en: "Many trees don't have leaves.", cn: "许多树没了树叶。"},
+            {en: "The seasons begin again.", cn: "四季(循环)又开始了。"},
+            // Extend Sentences (P50)
+            {en: "I have an apple tree.", cn: "我有一颗苹果树。"},
+            {en: "There are lots of flowers on my apple tree.", cn: "我的苹果树上有大量的花。"},
+            {en: "Honeybees look for food.", cn: "蜜蜂寻找食物。"},
+            {en: "I build a tree house in my apple tree.", cn: "我在我的苹果树上建造了一座树屋。"},
+            {en: "I watch small apples grow.", cn: "我观看小苹果的生长。"},
+            {en: "My apple tree now has big, red apples.", cn: "我的苹果树现在结了有大又红的苹果。"},
+            {en: "My family and I make apple pies.", cn: "我的家人和我一起制作苹果派。"},
+            {en: "There is lots of snow.", cn: "(地上)有好多的雪。"},
+            {en: "I make a snowman.", cn: "我做了个雪人。"},
+            {en: "There are no leaves on the apple tree now.", cn: "苹果树上现在没有树叶了。"},
+        ];
+
+        const grammarQuizData = [
+            // help sb. do sth. tests
+            { type: 'help', sentence: ["The sun helps fruit and flowers", "[verb_base]", "."], blanks: [{ base: "grow", correct: "grow"}], cn: "太阳帮助果实和花朵生长。", rule: "动词不定式省略 to: help sb./sth. do sth." },
+            { type: 'help', sentence: ["The rain", "[verb_s]", "plants", "[verb_base]", "."], blanks: [{ base: "help", correct: "helps"}, { base: "grow", correct: "grow"}], cn: "雨水帮助植物生长。", rule: "动词不定式省略 to: help sb./sth. do sth." },
+            { type: 'help', sentence: ["My mother always helps me", "[verb_base]", "my homework."], blanks: [{ base: "do", correct: "do"}], cn: "我妈妈总是帮助我做我的作业。", rule: "动词不定式省略 to: help sb./sth. do sth." },
+            
+            // Third Person Singular tests
+            { type: 'tps', sentence: ["It", "[verb_tps]", "warm in spring."], blanks: [{ base: "get", correct: "gets"}], cn: "它在春天变得温暖。", rule: "第三人称单数: 一般情况加 -s" },
+            { type: 'tps', sentence: ["She", "[verb_tps]", "TV every day."], blanks: [{ base: "watch", correct: "watches"}], cn: "她每天看电视。", rule: "第三人称单数: 以 ch 结尾加 -es" },
+            { type: 'tps', sentence: ["He", "[verb_tps]", "to school."], blanks: [{ base: "go", correct: "goes"}], cn: "他去学校。", rule: "第三人称单数: 部分以 -o 结尾加 -es" },
+            { type: 'tps', sentence: ["The sun", "[verb_tps]", "brightly in summer."], blanks: [{ base: "shine", correct: "shines"}], cn: "太阳在夏天照耀得很明亮。", rule: "第三人称单数: 一般情况加 -s" },
+            { type: 'tps', sentence: ["My sister", "[verb_tps]", "English hard."], blanks: [{ base: "study", correct: "studies"}], cn: "我妹妹努力学习英语。", rule: "第三人称单数: 辅音+y 结尾, 改 y 为 i 加 -es" },
+            { type: 'tps', sentence: ["Tom", "[verb_tps]", "his homework."], blanks: [{ base: "do", correct: "does"}], cn: "Tom做他的作业。", rule: "第三人称单数: 部分以 -o 结尾加 -es" },
+            { type: 'tps', sentence: ["The cat", "[verb_tps]", "mice."], blanks: [{ base: "catch", correct: "catches"}], cn: "这只猫抓老鼠。", rule: "第三人称单数: 以 ch 结尾加 -es" },
+            { type: 'tps', sentence: ["Rosa", "[verb_tps]", "a lovely cow."], blanks: [{ base: "have", correct: "has"}], cn: "Rosa有一头可爱的牛。", rule: "第三人称单数: 特殊变化" },
+        ];
+        
+        const readingQuizData = [
+            {
+                title: "Passage 1: A Year on the Farm (农场的一年)",
+                text: "My family lives on a small farm. There are four seasons here, and each one is different. In spring, it gets warm, and we plant seeds. The rain helps them grow. Summer is hot and long, and we often take a trip to the lake for a swim. In autumn, it gets cool. The leaves turn yellow and fall down. Winter is cold and short. When it snows, my little kid and I build a big snowman outside. Then, the seasons begin again.",
+                questions: [
+                    {
+                        q: "What activity do they usually do in the summer?",
+                        options: ["Plant seeds.", "Build a snowman.", "Take a trip to the lake.", "Watch the leaves fall."],
+                        correct: 2, // Take a trip to the lake.
+                    },
+                    {
+                        q: "What season is cool and sees leaves falling?",
+                        options: ["Spring", "Summer", "Autumn", "Winter"],
+                        correct: 2, // Autumn.
+                    },
+                    {
+                        q: "According to the passage, what helps the seeds grow?",
+                        options: ["The sun.", "The snow.", "The rain.", "The lake."],
+                        correct: 2, // The rain.
+                    }
+                ]
+            },
+            {
+                title: "Passage 2: My Favorite Season (我最爱的季节)",
+                text: "My favourite season is spring. It is very different from winter because the weather is warm and everything begins to grow. I usually go outside and wait for the flowers to open. After spring, summer comes. It is too hot to play sports. I don't like winter much because it is too cold and often snows. The days are short then. I like to change my activity when the season changes. I always look forward to the year starting fresh in the spring.",
+                questions: [
+                    {
+                        q: "What is the author's favourite season?",
+                        options: ["Summer", "Winter", "Spring", "Autumn"],
+                        correct: 2, // Spring.
+                    },
+                    {
+                        q: "Why does the author dislike winter?",
+                        options: ["It is too hot.", "It is too cold and snows.", "The days are long.", "He has no activity."],
+                        correct: 1, // It is too cold and snows.
+                    },
+                    {
+                        q: "What does the author do after spring?",
+                        options: ["He waits for flowers.", "He plays sports.", "The weather gets hot.", "He changes his activity."],
+                        correct: 2, // The weather gets hot (Summer comes, It is too hot)
+                    }
+                ]
+            }
+        ];
+
+        const completionQuizData = [
+            {
+                cn: "一年有四个季节。",
+                en_parts: ["There are four", "[season]", "in a", "[year]", "."],
+                blanks: [{ correct: "seasons" }, { correct: "year" }]
+            },
+            {
+                cn: "下雪了，天气很冷。",
+                en_parts: ["It", "[snow]", "and it's very", "[cold]", "."],
+                blanks: [{ correct: "snows" }, { correct: "cold" }]
+            },
+            {
+                cn: "我的母亲通常在周末带我们去短途旅行。",
+                en_parts: ["My mother", "[usually]", "takes us for a", "[trip]", "on weekends."],
+                blanks: [{ correct: "usually" }, { correct: "trip" }] 
+            },
+            {
+                cn: "在秋天，树叶会变色。",
+                en_parts: ["The", "[leaf]", "will", "[change]", "color in", "[autumn]", "."],
+                blanks: [{ correct: "leaves" }, { correct: "change" }, { correct: "autumn" }]
+            },
+            {
+                cn: "雨水帮助植物生长。",
+                en_parts: ["The rain", "[help]", "plants", "[grow]", "."],
+                blanks: [{ correct: "helps" }, { correct: "grow" }]
+            },
+            {
+                cn: "他在外面等我，直到我完成作业。",
+                en_parts: ["He is waiting", "[outside]", "[until]", "I finish my homework."],
+                blanks: [{ correct: "outside" }, { correct: "until" }] 
+            },
+            {
+                cn: "冬天之后春天就来了。",
+                en_parts: ["Spring", "[come]", "[after]", "winter."],
+                blanks: [{ correct: "comes" }, { correct: "after" }] 
+            },
+        ];
+
+        // --- CLOZE DATA (VI) ---
+        const clozeQuizData = [
+            {
+                title: "Apple Tree Seasons (苹果树四季)",
+                textParts: [
+                    "My favorite season is spring. I have an apple tree. In spring, the weather is",
+                    "warm", // 1
+                    "and there are lots of flowers on my tree. Honeybees look for food, and the rain",
+                    "helps", // 2
+                    "the plants to grow.\n\nAfter spring,", // <-- \n\n creates paragraph break
+                    "summer", // 3
+                    "comes. It is very hot and the days are long. I like to sit",
+                    "outside", // 4
+                    "and watch the small apples",
+                    "grow", // 5
+                    "bigger. My family and I will take a trip to the lake one day.\n\nThen it is autumn. The days", // <-- \n\n creates paragraph break
+                    "get", // 6
+                    "cool. The leaves",
+                    "fall", // 7
+                    "down, and they",
+                    "turn", // 8
+                    "red or yellow. After autumn,",
+                    "winter", // 9
+                    "comes. It is very",
+                    "cold", // 10
+                    "and it often snows! I build a snowman with my kid. Then, the seasons begin again."
+                ],
+                questions: [
+                    { qIndex: 1, options: ["cool", "cold", "hot", "warm"], correct: 3 }, // warm
+                    { qIndex: 2, options: ["grows", "helps", "takes", "falls"], correct: 1 }, // helps
+                    { qIndex: 3, options: ["autumn", "winter", "summer", "season"], correct: 2 }, // summer
+                    { qIndex: 4, options: ["usually", "often", "outside", "until"], correct: 2 }, // outside
+                    { qIndex: 5, options: ["grow", "to grow", "growing", "grew"], correct: 0 }, // grow (help sb do sth)
+                    { qIndex: 6, options: ["get", "gets", "got", "getting"], correct: 0 }, // get (The days get cool)
+                    { qIndex: 7, options: ["change", "turn", "grow", "fall"], correct: 3 }, // fall
+                    { qIndex: 8, options: ["turn", "turns", "change", "changes"], correct: 0 }, // turn (The leaves... turn)
+                    { qIndex: 9, options: ["winter", "summer", "spring", "season"], correct: 0 }, // winter
+                    { qIndex: 10, options: ["warm", "cool", "hot", "cold"], correct: 3 }, // cold
+                ]
+            }
+        ];
+
+        
+        // --- 2. State Variables ---
+        let currentVocabIndex = 0;
+        let isVocabFlipped = false;
+        let showChineseTranslation = true; // 新增状态：控制中文翻译显示
+        let currentSentenceIndex = 0;
+        let currentGrammarIndex = 0;
+        let currentReadingIndex = 0;
+        let currentCompletionIndex = 0;
+        let currentClozeIndex = 0; 
+
+        // Shuffle quiz data for variety
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+        shuffleArray(grammarQuizData);
+        shuffleArray(completionQuizData);
+        shuffleArray(clozeQuizData);
+
+        // --- TTS Utility Functions (Text-to-Speech) ---
+        
+        const apiKey = "";
+        const ttsModel = "gemini-2.5-flash-preview-tts";
+        const ttsApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${ttsModel}:generateContent?key=${apiKey}`;
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        function pcmToWav(pcm16, sampleRate = 16000) {
+            const numChannels = 1;
+            const bitsPerSample = 16;
+            const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+            const blockAlign = numChannels * (bitsPerSample / 8);
+            
+            const wavLength = 44 + pcm16.byteLength;
+            const buffer = new ArrayBuffer(wavLength);
+            const view = new DataView(buffer);
+            
+            // RIFF identifier
+            writeString(view, 0, 'RIFF');
+            // File size
+            view.setUint32(4, wavLength - 8, true);
+            // WAV identifier
+            writeString(view, 8, 'WAVE');
+            // FMT chunk
+            writeString(view, 12, 'fmt ');
+            // FMT chunk size
+            view.setUint32(16, 16, true);
+            // Audio format (1 = PCM)
+            view.setUint16(20, 1, true);
+            // Number of channels
+            view.setUint16(22, numChannels, true);
+            // Sample rate
+            view.setUint32(24, sampleRate, true);
+            // Byte rate
+            view.setUint32(28, byteRate, true);
+            // Block align
+            view.setUint16(32, blockAlign, true);
+            // Bits per sample
+            view.setUint16(34, bitsPerSample, true);
+            // Data chunk
+            writeString(view, 36, 'data');
+            // Data size
+            view.setUint32(40, pcm16.byteLength, true);
+            
+            // Write PCM data
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16[i], true);
+            }
+            
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        function playWavAudio(wavBlob) {
+            const audioUrl = URL.createObjectURL(wavBlob);
+            const audio = new Audio(audioUrl);
+            audio.play().catch(e => console.error("Error playing audio:", e));
+        }
+
+        async function playAudio(text, voiceName = "Zephyr") {
+            const statusEl = document.getElementById('audio-status');
+            statusEl.textContent = '🔊 正在生成读音...';
+            statusEl.classList.remove('text-red-500', 'text-green-500', 'text-gray-500');
+            statusEl.classList.add('text-indigo-500');
+
+            const payload = {
+                contents: [{ parts: [{ text: text }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceName } } }
+                },
+                model: ttsModel
+            };
+
+            let response;
+            for (let i = 0; i < 3; i++) {
+                try {
+                    response = await fetch(ttsApiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (response.ok) break;
+                } catch (error) {
+                    if (i < 2) {
+                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                    } else {
+                        console.error('API call failed after multiple retries:', error);
+                        statusEl.textContent = '❌ 读音生成失败 (API Error)';
+                        statusEl.classList.replace('text-indigo-500', 'text-red-500');
+                        return;
+                    }
+                }
+            }
+
+            if (!response || !response.ok) {
+                statusEl.textContent = '❌ 读音生成失败 (Server Error)';
+                statusEl.classList.replace('text-indigo-500', 'text-red-500');
+                return;
+            }
+
+            const result = await response.json();
+            const part = result?.candidates?.[0]?.content?.parts?.[0];
+            const audioData = part?.inlineData?.data;
+            const mimeType = part?.inlineData?.mimeType;
+
+            if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                try {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000;
+                    
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    playWavAudio(wavBlob);
+                    
+                    statusEl.textContent = '✅ 正在播放...';
+                    statusEl.classList.replace('text-indigo-500', 'text-green-500');
+                    
+                    setTimeout(() => {
+                        statusEl.textContent = '点击读音按钮播放';
+                        statusEl.classList.remove('text-green-500');
+                        statusEl.classList.add('text-gray-500');
+                    }, 3000);
+
+                } catch (e) {
+                    console.error("Audio processing error:", e);
+                    statusEl.textContent = '❌ 读音处理错误';
+                    statusEl.classList.replace('text-indigo-500', 'text-red-500');
+                }
+            } else {
+                statusEl.textContent = '❌ 无法获取读音数据';
+                statusEl.classList.replace('text-indigo-500', 'text-red-500');
+            }
+        }
+
+
+        // --- 3. UI Control Functions ---
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.review-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(`section-${sectionId}`).classList.remove('hidden');
+
+            document.querySelectorAll('button[id^="tab-"]').forEach(tab => {
+                tab.classList.remove('tab-active');
+            });
+            document.getElementById(`tab-${sectionId}`).classList.add('tab-active');
+
+            if (sectionId === 'vocab') {
+                renderVocabCard();
+            } else if (sectionId === 'sentences') {
+                renderSentence();
+            } else if (sectionId === 'grammar') {
+                renderGrammarQuiz();
+            } else if (sectionId === 'reading') {
+                renderReadingQuiz();
+            } else if (sectionId === 'completion') {
+                renderCompletionQuiz();
+            } else if (sectionId === 'cloze') {
+                renderClozeQuiz();
+            }
+        }
+
+        // --- 4. Vocabulary Flashcard Logic ---
+
+        function toggleChinese() {
+            // Read the checked state of the toggle switch
+            showChineseTranslation = document.getElementById('chinese-toggle').checked;
+            renderVocabCard(); // Re-render the card to apply the visibility change
+        }
+
+        function renderVocabCard() {
+            const container = document.getElementById('vocab-card-container');
+            const data = vocabularyData[currentVocabIndex];
+            
+            // Generate phonics breakdown HTML
+            const phonicsHtml = data.phonics.map(p => `<span>${p}</span>`).join('');
+
+            // Update counter
+            document.getElementById('vocab-counter').textContent = `${currentVocabIndex + 1} / ${vocabularyData.length}`;
+
+            // Create card HTML
+            container.innerHTML = `
+                <div id="vocab-card" class="flashcard ${isVocabFlipped ? 'flipped' : ''}" onclick="flipVocab()">
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">
+                            <!-- Front Content: English word, phonetic, and play button -->
+                            <div class="flex flex-col items-center p-4">
+                                <span class="text-3xl font-bold mb-1">${data.en}</span>
+                                <span class="text-xl font-medium mb-1 text-white/80">[${data.phonetic}]</span>
+                                <!-- Phonics Breakdown -->
+                                <div class="phonics-breakdown flex justify-center flex-wrap">${phonicsHtml}</div>
+                                
+                                <button onclick="event.stopPropagation(); playAudio('${data.en}')" 
+                                        class="bg-white text-indigo-600 hover:bg-indigo-100 py-2 px-4 rounded-full shadow-md transition duration-300 flex items-center space-x-2 mt-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>读音</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flashcard-back">
+                            <!-- Back Content: English word, phonetic, and conditional Chinese -->
+                            <div class="flex flex-col items-center p-4">
+                                <span class="text-3xl font-bold mb-2 text-indigo-600">${data.en}</span>
+                                <span class="text-xl font-medium mb-4 text-gray-700">[${data.phonetic}]</span>
+                                <!-- CRITICAL: Conditional rendering for Chinese translation -->
+                                ${showChineseTranslation ? 
+                                    // SHOW Chinese translation (data.cn)
+                                    `<span class="text-2xl font-bold text-gray-800 border-t pt-4 mt-4 w-full">${data.cn}</span>` : 
+                                    // SHOW placeholder message
+                                    `<span class="text-lg font-semibold text-gray-500 border-t pt-4 mt-4 w-full">中文翻译已隐藏 (请点击上方开关显示)</span>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Ensure the toggle switch state is visually correct (optional but safe)
+            document.getElementById('chinese-toggle').checked = showChineseTranslation;
+        }
+
+        function flipVocab() {
+            const card = document.getElementById('vocab-card');
+            isVocabFlipped = !isVocabFlipped;
+            if (isVocabFlipped) {
+                card.classList.add('flipped');
+            } else {
+                card.classList.remove('flipped');
+            }
+        }
+
+        function nextVocab() {
+            isVocabFlipped = false;
+            currentVocabIndex = (currentVocabIndex + 1) % vocabularyData.length;
+            renderVocabCard();
+        }
+
+        function prevVocab() {
+            isVocabFlipped = false;
+            const len = vocabularyData.length;
+            if (!len) return;
+            currentVocabIndex = (currentVocabIndex - 1 + len) % len;
+            renderVocabCard();
+        }
+
+        // --- 5. Sentence Review Logic ---
+
+        function renderSentence() {
+            const data = sentenceData[currentSentenceIndex];
+            
+            // Update counter
+            document.getElementById('sentence-counter').textContent = `${currentSentenceIndex + 1} / ${sentenceData.length}`;
+
+            // Reset state
+            document.getElementById('sentence-cn').textContent = data.cn;
+            document.getElementById('sentence-en').textContent = data.en;
+            document.getElementById('sentence-en-container').classList.add('hidden');
+            document.getElementById('sentence-reveal-btn').textContent = "点击显示英文原句";
+            document.getElementById('sentence-reveal-btn').classList.remove('bg-gray-500');
+            document.getElementById('sentence-reveal-btn').classList.add('bg-emerald-500');
+        }
+
+        function revealSentence() {
+            document.getElementById('sentence-en-container').classList.remove('hidden');
+            document.getElementById('sentence-reveal-btn').textContent = "已显示 - 点击下一句";
+            document.getElementById('sentence-reveal-btn').classList.remove('bg-emerald-500');
+            document.getElementById('sentence-reveal-btn').classList.add('bg-gray-500');
+            document.getElementById('sentence-reveal-btn').onclick = nextSentence;
+        }
+        
+        function nextSentence() {
+            currentSentenceIndex = (currentSentenceIndex + 1) % sentenceData.length;
+            document.getElementById('sentence-reveal-btn').onclick = revealSentence;
+            renderSentence();
+        }
+
+        function prevSentence() {
+            currentSentenceIndex = (currentSentenceIndex - 1 + sentenceData.length) % sentenceData.length;
+            document.getElementById('sentence-reveal-btn').onclick = revealSentence;
+            renderSentence();
+        }
+
+        // --- 6. Grammar Quiz Logic (III) ---
+
+        function renderGrammarQuiz() {
+            const data = grammarQuizData[currentGrammarIndex];
+            const quizDisplay = document.getElementById('grammar-quiz-display');
+            
+            // Display rule hint and CN hint
+            document.getElementById('grammar-rule').textContent = data.rule;
+            document.getElementById('grammar-cn').textContent = `中文: ${data.cn}`;
+            
+            // Build the sentence display with blanks
+            let html = '';
+            let blankCounter = 0;
+
+            data.sentence.forEach(part => {
+                if (part.startsWith('[')) {
+                    // It's a blank
+                    const baseWord = data.blanks[blankCounter].base;
+                    
+                    html += `
+                        <input type="text" 
+                                class="border-2 border-gray-300 p-2 rounded-lg text-center focus:border-orange-500 focus:ring-0 blank" 
+                                placeholder="输入 ${baseWord}" 
+                                value="">
+                    `;
+                    blankCounter++;
+                } else {
+                    // It's regular text
+                    html += `<span>${part}</span>`;
+                }
+            });
+            
+            quizDisplay.innerHTML = html;
+            document.getElementById('quiz-result').innerHTML = '';
+            document.getElementById('check-btn').style.display = 'block';
+
+            // Re-enable inputs
+            quizDisplay.querySelectorAll('input').forEach(input => {
+                input.disabled = false;
+                input.classList.remove('border-green-500', 'border-red-500');
+            });
+        }
+
+        function checkGrammar() {
+            const data = grammarQuizData[currentGrammarIndex];
+            const quizDisplay = document.getElementById('grammar-quiz-display');
+            const inputs = quizDisplay.querySelectorAll('input');
+            const result = document.getElementById('quiz-result');
+            let allCorrect = true;
+
+            inputs.forEach((input, index) => {
+                const userAnswer = input.value.trim().toLowerCase();
+                const correctWord = data.blanks[index].correct.toLowerCase();
+                
+                input.disabled = true;
+
+                if (userAnswer === correctWord) {
+                    input.classList.add('border-green-500');
+                    input.classList.remove('border-red-500');
+                } else {
+                    input.classList.add('border-red-500');
+                    input.classList.remove('border-green-500');
+                    allCorrect = false;
+                }
+            });
+            
+            // Construct and display the full correct sentence
+            let sentenceParts = [];
+            let inputIndex = 0;
+            data.sentence.forEach(part => {
+                if (part.startsWith('[')) {
+                    sentenceParts.push(data.blanks[inputIndex].correct);
+                    inputIndex++;
+                } else {
+                    sentenceParts.push(part);
+                }
+            });
+            
+            const fullCorrectSentence = sentenceParts.join(' ');
+
+
+            if (allCorrect) {
+                result.innerHTML = `<span class="text-green-600">✅ 全部正确！</span> 完整句子：${fullCorrectSentence}`;
+            } else {
+                result.innerHTML = `<span class="text-red-600">❌ 存在错误。</span> 正确句子: ${fullCorrectSentence}`;
+            }
+
+            document.getElementById('check-btn').style.display = 'none';
+        }
+
+        function nextGrammar() {
+            currentGrammarIndex = (currentGrammarIndex + 1) % grammarQuizData.length;
+            renderGrammarQuiz();
+        }
+
+        function prevGrammar() {
+            currentGrammarIndex = (currentGrammarIndex - 1 + grammarQuizData.length) % grammarQuizData.length;
+            renderGrammarQuiz();
+        }
+
+        // --- 7. Reading Comprehension Logic (IV) ---
+
+        function renderReadingQuiz() {
+            const data = readingQuizData[currentReadingIndex];
+            document.getElementById('reading-title').textContent = data.title;
+            document.getElementById('reading-passage').innerHTML = data.text;
+            document.getElementById('reading-result').textContent = '';
+            document.getElementById('reading-check-btn').style.display = 'block';
+
+            const questionsContainer = document.getElementById('reading-questions-container');
+            let html = '';
+
+            data.questions.forEach((qItem, qIndex) => {
+                html += `
+                    <div class="p-4 bg-white rounded-lg shadow-sm border border-purple-200">
+                        <p class="font-bold mb-3 text-gray-800">${qIndex + 1}. ${qItem.q}</p>
+                        <div class="space-y-2">
+                `;
+                qItem.options.forEach((option, oIndex) => {
+                    html += `
+                        <label class="flex items-center space-x-2 text-gray-700 cursor-pointer">
+                            <input type="radio" name="q${qIndex}" value="${oIndex}" class="text-purple-600 focus:ring-purple-500" data-qindex="${qIndex}">
+                            <span>${String.fromCharCode(65 + oIndex)}. ${option}</span>
+                        </label>
+                    `;
+                });
+                html += `
+                        </div>
+                        <p id="q-result-${qIndex}" class="mt-2 text-sm font-semibold"></p>
+                    </div>
+                `;
+            });
+
+            questionsContainer.innerHTML = html;
+        }
+
+        function checkReading() {
+            const data = readingQuizData[currentReadingIndex];
+            let score = 0;
+            let total = data.questions.length;
+
+            data.questions.forEach((qItem, qIndex) => {
+                const selected = document.querySelector(`input[name="q${qIndex}"]:checked`);
+                const resultEl = document.getElementById(`q-result-${qIndex}`);
+                
+                if (selected) {
+                    const userAnswer = parseInt(selected.value);
+                    if (userAnswer === qItem.correct) {
+                        score++;
+                        resultEl.innerHTML = '<span class="text-green-600">✅ 正确</span>';
+                    } else {
+                        const correctOption = String.fromCharCode(65 + qItem.correct);
+                        resultEl.innerHTML = `<span class="text-red-600">❌ 错误</span> (正确答案: ${correctOption}. ${qItem.options[qItem.correct]})`;
+                    }
+                } else {
+                    resultEl.innerHTML = '<span class="text-yellow-600">⚠️ 未作答</span>';
+                }
+
+                // Disable all options after checking
+                document.querySelectorAll(`input[name="q${qIndex}"]`).forEach(input => {
+                    input.disabled = true;
+                });
+            });
+
+            document.getElementById('reading-result').textContent = `得分: ${score} / ${total}`;
+            document.getElementById('reading-check-btn').style.display = 'none';
+        }
+
+        function nextReading() {
+            currentReadingIndex = (currentReadingIndex + 1) % readingQuizData.length;
+            renderReadingQuiz();
+        }
+
+        // --- 8. Sentence Completion Logic (V) ---
+
+        function renderCompletionQuiz() {
+            const data = completionQuizData[currentCompletionIndex];
+            const quizDisplay = document.getElementById('completion-quiz-display');
+            
+            // Display CN hint
+            document.getElementById('completion-cn').textContent = `中文: ${data.cn}`;
+            
+            // Build the sentence display with blanks
+            let html = '';
+            let blankCounter = 0;
+
+            data.en_parts.forEach(part => {
+                if (part.startsWith('[')) {
+                    // It's a blank
+                    const correctWord = data.blanks[blankCounter].correct;
+                    
+                    html += `
+                        <input type="text" 
+                                class="border-2 border-gray-300 p-2 rounded-lg text-center focus:border-pink-500 focus:ring-0 blank" 
+                                placeholder="输入 ${correctWord} (提示)" 
+                                value=""
+                                >
+                    `;
+                    blankCounter++;
+                } else {
+                    // It's regular text
+                    html += `<span>${part}</span>`;
+                }
+            });
+            
+            quizDisplay.innerHTML = html;
+            document.getElementById('completion-result').innerHTML = '';
+            document.getElementById('completion-check-btn').style.display = 'block';
+
+            // Re-enable inputs
+            quizDisplay.querySelectorAll('input').forEach(input => {
+                input.disabled = false;
+                input.classList.remove('border-green-500', 'border-red-500');
+            });
+        }
+
+        function checkCompletion() {
+            const data = completionQuizData[currentCompletionIndex];
+            const quizDisplay = document.getElementById('completion-quiz-display');
+            const inputs = quizDisplay.querySelectorAll('input');
+            const result = document.getElementById('completion-result');
+            let allCorrect = true;
+            
+            inputs.forEach((input, index) => {
+                const userAnswer = input.value.trim().toLowerCase();
+                const correctWord = data.blanks[index].correct.toLowerCase();
+                
+                input.disabled = true;
+
+                if (userAnswer === correctWord) {
+                    input.classList.add('border-green-500');
+                    input.classList.remove('border-red-500');
+                } else {
+                    input.classList.add('border-red-500');
+                    input.classList.remove('border-green-500');
+                    allCorrect = false;
+                }
+            });
+            
+            // Construct and display the full correct sentence
+            let finalSentenceParts = [];
+            let blankCounter = 0;
+            data.en_parts.forEach(part => {
+                if (part.startsWith('[')) {
+                    finalSentenceParts.push(data.blanks[blankCounter].correct);
+                    blankCounter++;
+                } else {
+                    finalSentenceParts.push(part);
+                }
+            });
+            
+            const fullCorrectSentence = finalSentenceParts.join(' ');
+
+
+            if (allCorrect) {
+                result.innerHTML = `<span class="text-green-600">✅ 全部正确！</span> 完整句子：${fullCorrectSentence}`;
+            } else {
+                result.innerHTML = `<span class="text-red-600">❌ 存在错误。</span> 正确句子: ${fullCorrectSentence}`;
+            }
+
+            document.getElementById('completion-check-btn').style.display = 'none';
+        }
+
+        function nextCompletion() {
+            currentCompletionIndex = (currentCompletionIndex + 1) % completionQuizData.length;
+            renderCompletionQuiz();
+        }
+
+        // --- 9. Cloze Test Logic (VI) ---
+
+        function renderClozeQuiz() {
+            const data = clozeQuizData[currentClozeIndex];
+            document.getElementById('cloze-title').textContent = data.title;
+            document.getElementById('cloze-result').textContent = '';
+            document.getElementById('cloze-check-btn').style.display = 'block';
+
+            // 1. Render Passage
+            const passageEl = document.getElementById('cloze-passage');
+            let passageHtml = '';
+            
+            // Combine all text and blanks first, adding &nbsp; around blanks to prevent wrapping.
+            const fullTextWithBlanks = data.textParts.map((part, index) => {
+                if (index % 2 === 1) { // This is a blank word index (the expected answer)
+                    // Insert the custom blank placeholder with number above underline
+                    const qIndex = (index + 1) / 2;
+                    return `
+                        &nbsp;<span class="cloze-placeholder">
+                            <span class="cloze-number">${qIndex}</span>
+                            <span class="cloze-underline"></span>
+                        </span>&nbsp;
+                    `;
+                } else {
+                    return part;
+                }
+            }).join('');
+            
+            // Split into paragraphs using the new line marker \n\n and wrap each in <p>
+            const paragraphs = fullTextWithBlanks.split('\n\n');
+            passageHtml = paragraphs.map(p => {
+                // Trim to remove potential leading/trailing spaces from split, and ensure only non-empty paragraphs are rendered
+                const trimmedP = p.trim();
+                return trimmedP ? `<p class="mb-6">${trimmedP}</p>` : '';
+            }).join('');
+
+            passageEl.innerHTML = passageHtml;
+
+
+            // 2. Render Questions
+            const questionsContainer = document.getElementById('cloze-questions-container');
+            let questionsHtml = '';
+
+            data.questions.forEach((qItem, qArrIndex) => {
+                questionsHtml += `
+                    <div class="p-4 bg-white rounded-lg shadow-sm border border-red-200">
+                        <p class="font-bold mb-3 text-gray-800">${qItem.qIndex}. 请选择最合适的单词填入空白 (${qItem.qIndex}):</p>
+                        <div class="cloze-options-row"> <!-- Use the new inline row class -->
+                `;
+                qItem.options.forEach((option, oIndex) => {
+                    questionsHtml += `
+                        <label>
+                            <input type="radio" name="cloze-q${qItem.qIndex}" value="${oIndex}" data-qindex="${qArrIndex}">
+                            <span>${String.fromCharCode(65 + oIndex)}. ${option}</span>
+                        </label>
+                    `;
+                });
+                questionsHtml += `
+                        </div>
+                        <p id="cloze-q-result-${qItem.qIndex}" class="mt-2 text-sm font-semibold"></p>
+                    </div>
+                `;
+            });
+
+            questionsContainer.innerHTML = questionsHtml;
+        }
+
+        function checkCloze() {
+            const data = clozeQuizData[currentClozeIndex];
+            let score = 0;
+            let total = data.questions.length;
+
+            data.questions.forEach((qItem) => {
+                const selected = document.querySelector(`input[name="cloze-q${qItem.qIndex}"]:checked`);
+                const resultEl = document.getElementById(`cloze-q-result-${qItem.qIndex}`);
+                
+                // Get the correct word to display in the result message (Index is qIndex * 2 - 1)
+                const correctWord = data.textParts[qItem.qIndex * 2 - 1]; 
+
+                if (selected) {
+                    const userAnswer = parseInt(selected.value);
+                    if (userAnswer === qItem.correct) {
+                        score++;
+                        resultEl.innerHTML = `<span class="text-green-600">✅ 正确</span> (答案: ${correctWord})`;
+                    } else {
+                        const correctOption = String.fromCharCode(65 + qItem.correct);
+                        resultEl.innerHTML = `<span class="text-red-600">❌ 错误</span> (正确答案: ${qItem.options[qItem.correct]})`;
+                    }
+                } else {
+                    resultEl.innerHTML = '<span class="text-yellow-600">⚠️ 未作答</span>';
+                }
+
+                // Disable all options after checking
+                document.querySelectorAll(`input[name="cloze-q${qItem.qIndex}"]`).forEach(input => {
+                    input.disabled = true;
+                });
+            });
+
+            document.getElementById('cloze-result').textContent = `得分: ${score} / ${total}`;
+            document.getElementById('cloze-check-btn').style.display = 'none';
+        }
+
+        function nextCloze() {
+            currentClozeIndex = (currentClozeIndex + 1) % clozeQuizData.length;
+            renderClozeQuiz();
+        }
+
+        // --- 10. Initialization ---
+        window.onload = function() {
+            showSection('vocab'); // Start on the vocabulary tab
+            document.getElementById('vocab-card-container').addEventListener('click', flipVocab);
+            
+            // Initial render for all sections
+            renderSentence();
+            renderGrammarQuiz();
+            renderReadingQuiz();
+            renderCompletionQuiz();
+            renderClozeQuiz(); 
+        };
+
+    </script>
+    <script>
+      (function(){
+        const statusEl = document.getElementById('audio-status');
+        function speakWithSpeechSynthesis(text){
+          try {
+            if (!('speechSynthesis' in window)) return false;
+            window.speechSynthesis.cancel();
+            const ut = new SpeechSynthesisUtterance(text);
+            ut.lang = 'en-US';
+            ut.rate = 0.9;
+            const voices = window.speechSynthesis.getVoices();
+            const enVoice = voices && voices.find(v => (v.lang || '').toLowerCase().startsWith('en'));
+            if (enVoice) ut.voice = enVoice;
+            ut.onend = () => { if (statusEl) statusEl.textContent = '点击读音按钮播放'; };
+            ut.onerror = () => { if (statusEl) statusEl.textContent = '❌ 读音失败'; };
+            if (statusEl) statusEl.textContent = '🔊 正在发音...';
+            window.speechSynthesis.speak(ut);
+            return true;
+          } catch(e){
+            return false;
+          }
+        }
+
+        function speakWithOnlineTTS(text){
+          try {
+            const url = 'https://dict.youdao.com/dictvoice?type=2&audio=' + encodeURIComponent(text);
+            const audio = new Audio(url);
+            if (statusEl) statusEl.textContent = '🔊 正在发音...';
+            audio.play()
+              .then(() => { if (statusEl) statusEl.textContent = '点击读音按钮播放'; })
+              .catch(() => { if (statusEl) statusEl.textContent = '❌ 读音失败'; });
+            return true;
+          } catch(e){
+            return false;
+          }
+        }
+
+        // 覆盖 playAudio，提供本地语音合成与在线 TTS 双重兜底
+        const originalPlayAudio = window.playAudio;
+        window.playAudio = async function(text, voiceName){
+          // 优先使用本地语音合成，避免跨域与外部服务不可用问题
+          const localOk = speakWithSpeechSynthesis(text);
+          if (localOk) return;
+          // 其次尝试在线 TTS
+          const onlineOk = speakWithOnlineTTS(text);
+          if (onlineOk) return;
+          // 如果需要，最后尝试原始实现（例如自建接口），但可能不可用
+          try {
+            if (typeof originalPlayAudio === 'function') {
+              await originalPlayAudio(text, voiceName);
+            } else {
+              if (statusEl) statusEl.textContent = '❌ 读音不可用（无可用语音服务）';
+            }
+          } catch(e){
+            if (statusEl) statusEl.textContent = '❌ 读音失败';
+          }
+        };
+      })();
+    </script>
+    <script>
+      function prevReading() { currentReadingIndex = (currentReadingIndex - 1 + readingQuizData.length) % readingQuizData.length; renderReadingQuiz(); }
+      function prevCompletion() { currentCompletionIndex = (currentCompletionIndex - 1 + completionQuizData.length) % completionQuizData.length; renderCompletionQuiz(); }
+      function prevCloze() { currentClozeIndex = (currentClozeIndex - 1 + clozeQuizData.length) % clozeQuizData.length; renderClozeQuiz(); }
+    </script>
+    <script>
+      // 统一中文翻译开关：从开关状态刷新视图
+      (function(){
+        function updateTranslationVisibility(){
+          const toggleEl = document.getElementById('chinese-toggle');
+          const isOn = toggleEl ? !!toggleEl.checked : true;
+          ['sentence-cn','grammar-cn','completion-cn'].forEach(id=>{
+            const el = document.getElementById(id);
+            if (el) el.style.display = isOn ? '' : 'none';
+          });
+        }
+
+        const originalToggle = window.toggleChinese;
+        window.toggleChinese = function(){
+          const toggleEl = document.getElementById('chinese-toggle');
+          if (toggleEl) toggleEl.checked = !!toggleEl.checked; // 规范为布尔
+          try { if (typeof renderVocabCard === 'function') renderVocabCard(); } catch(e){}
+          try { if (typeof renderSentence === 'function') renderSentence(); } catch(e){}
+          try { if (typeof renderGrammarQuiz === 'function') renderGrammarQuiz(); } catch(e){}
+          try { if (typeof renderCompletionQuiz === 'function') renderCompletionQuiz(); } catch(e){}
+          try { if (typeof renderReadingQuiz === 'function') renderReadingQuiz(); } catch(e){}
+          try { if (typeof renderClozeQuiz === 'function') renderClozeQuiz(); } catch(e){}
+          updateTranslationVisibility();
+        };
+
+        document.addEventListener('DOMContentLoaded', function(){
+          updateTranslationVisibility();
+        });
+      })();
+    </script>
+</body>
+<script>
+  // 修正中文翻译开关：同时更新全局绑定并触发各模块重渲染
+  (function(){
+    function applyCNVisibility(checked){
+      ['sentence-cn','grammar-cn','completion-cn'].forEach(id=>{
+        const el = document.getElementById(id);
+        if (el) el.style.display = checked ? '' : 'none';
+      });
+    }
+
+    window.toggleChinese = function(){
+      const toggleEl = document.getElementById('chinese-toggle');
+      const checked = toggleEl ? !!toggleEl.checked : true;
+      try { showChineseTranslation = checked; } catch(e) { window.showChineseTranslation = checked; }
+      if (toggleEl) toggleEl.checked = checked;
+      try { if (typeof renderVocabCard === 'function') renderVocabCard(); } catch(e){}
+      try { if (typeof renderSentence === 'function') renderSentence(); } catch(e){}
+      try { if (typeof renderGrammarQuiz === 'function') renderGrammarQuiz(); } catch(e){}
+      try { if (typeof renderCompletionQuiz === 'function') renderCompletionQuiz(); } catch(e){}
+      try { if (typeof renderReadingQuiz === 'function') renderReadingQuiz(); } catch(e){}
+      try { if (typeof renderClozeQuiz === 'function') renderClozeQuiz(); } catch(e){}
+      applyCNVisibility(checked);
+    };
+
+    document.addEventListener('DOMContentLoaded', function(){
+      const toggleEl = document.getElementById('chinese-toggle');
+      const checked = toggleEl ? !!toggleEl.checked : true;
+      try { showChineseTranslation = checked; } catch(e) { window.showChineseTranslation = checked; }
+      applyCNVisibility(checked);
+    });
+  })();
+</script>
+</html>
